@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "status": "LOCAL_LUA51_TESTED_NOT_PRODUCTION_CERTIFIED",
+  "unit_test_methods": 16,
+  "differential_comparisons": 960,
+  "differential_failures": 0,
+  "cases": 80,
+  "profiles": 2,
+  "seeds": 3,
+  "runtimes": [
+    "Lua 5.1",
+    "LuaJIT 2.1"
+  ],
+  "roblox_tested": false,
+  "windows_tested": false,
+  "luraph_comparison": "NOT_TESTED",
+  "production_web_integrated": false
+}

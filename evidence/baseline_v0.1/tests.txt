@@ -1,0 +1,9 @@
+test_do_not_overwrite (test_engine.EngineTest.test_do_not_overwrite) ... ok
+test_invalid_input_no_artifact (test_engine.EngineTest.test_invalid_input_no_artifact) ... ok
+test_reproducibility_and_diversity (test_engine.EngineTest.test_reproducibility_and_diversity) ... ok
+test_semantics (test_engine.EngineTest.test_semantics) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 4.181s
+
+OK

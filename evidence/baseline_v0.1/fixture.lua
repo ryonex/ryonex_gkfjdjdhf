@@ -1,0 +1,1 @@
+local function f(n) local x=0 for i=1,n do x=x+i end return x end return f(10),"RYONEX_TEST"

@@ -1,0 +1,65 @@
+{
+  "warning": "Six probes of one known fixture do not measure general resistance or superiority over other obfuscators. Unprom limitations can explain failures.",
+  "results": [
+    {
+      "profile": "balanced",
+      "seed": 1,
+      "scope": "single authored sum fixture",
+      "semantic_recovery": false,
+      "tool_exit": 0,
+      "deob_bytes": 10681,
+      "input_bytes": 12182,
+      "evaluation_error_type": "LuaError"
+    },
+    {
+      "profile": "balanced",
+      "seed": 42,
+      "scope": "single authored sum fixture",
+      "semantic_recovery": false,
+      "tool_exit": 0,
+      "deob_bytes": 10605,
+      "input_bytes": 12252,
+      "evaluation_error_type": "LuaError"
+    },
+    {
+      "profile": "balanced",
+      "seed": 314159,
+      "scope": "single authored sum fixture",
+      "semantic_recovery": false,
+      "tool_exit": 0,
+      "deob_bytes": 10579,
+      "input_bytes": 12221,
+      "evaluation_error_type": "LuaSyntaxError"
+    },
+    {
+      "profile": "hardened",
+      "seed": 1,
+      "scope": "single authored sum fixture",
+      "semantic_recovery": false,
+      "tool_exit": 0,
+      "deob_bytes": 33230,
+      "input_bytes": 29122,
+      "evaluation_error_type": "LuaError"
+    },
+    {
+      "profile": "hardened",
+      "seed": 42,
+      "scope": "single authored sum fixture",
+      "semantic_recovery": false,
+      "tool_exit": 0,
+      "deob_bytes": 36030,
+      "input_bytes": 29511,
+      "evaluation_error_type": "LuaError"
+    },
+    {
+      "profile": "hardened",
+      "seed": 314159,
+      "scope": "single authored sum fixture",
+      "semantic_recovery": false,
+      "tool_exit": 0,
+      "deob_bytes": 36047,
+      "input_bytes": 29353,
+      "evaluation_error_type": "LuaError"
+    }
+  ]
+}

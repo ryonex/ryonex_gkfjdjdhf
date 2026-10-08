@@ -1,0 +1,195 @@
+{
+  "researched_at": "2026-10-09 Asia/Bangkok",
+  "scope": "Lua/Luau public sources; non-exhaustive",
+  "entries": [
+    {
+      "name": "Prometheus",
+      "role": "obfuscator",
+      "url": "https://github.com/prometheus-lua/Prometheus",
+      "status": "bundled and tested",
+      "notes": "Custom Prometheus License; exact license included"
+    },
+    {
+      "name": "Hercules",
+      "role": "obfuscator",
+      "url": "https://github.com/zeusssz/hercules-obfuscator",
+      "status": "candidate",
+      "notes": "Repository displays Apache-2.0; pinned revision not audited"
+    },
+    {
+      "name": "IronBrew2",
+      "role": "obfuscator",
+      "url": "https://github.com/Trollicus/ironbrew-2",
+      "status": "candidate",
+      "notes": "Repository displays MIT; Lua 5.1 VM"
+    },
+    {
+      "name": "darklua",
+      "role": "transformer",
+      "url": "https://github.com/seaofvoices/darklua",
+      "status": "candidate",
+      "notes": "Lua/Luau tooling; not a security boundary"
+    },
+    {
+      "name": "luamin",
+      "role": "minifier",
+      "url": "https://github.com/mathiasbynens/luamin",
+      "status": "candidate",
+      "notes": "Minification, not VM protection"
+    },
+    {
+      "name": "Ironveil",
+      "role": "obfuscator",
+      "url": "https://github.com/memcpython/ironveil",
+      "status": "search result only",
+      "notes": "Source fetch unavailable; not validated"
+    },
+    {
+      "name": "LuaGuard",
+      "role": "obfuscator",
+      "url": "https://github.com/juston-li/LuaGuard",
+      "status": "candidate",
+      "notes": "Not executed; license review required"
+    },
+    {
+      "name": "LuaObfuscatorV2",
+      "role": "obfuscator",
+      "url": "https://github.com/PY44N/LuaObfuscatorV2",
+      "status": "candidate",
+      "notes": "Not executed; license review required"
+    },
+    {
+      "name": "lvm-protect",
+      "role": "obfuscator",
+      "url": "https://github.com/nodeiwnl/lvm-protect",
+      "status": "candidate",
+      "notes": "Upstream reports large-script limitations"
+    },
+    {
+      "name": "FiOne",
+      "role": "interpreter",
+      "url": "https://github.com/SovereignSatellite/FiOne",
+      "status": "candidate",
+      "notes": "Lua 5.1 bytecode interpreter, not full obfuscator"
+    },
+    {
+      "name": "Fiu",
+      "role": "interpreter",
+      "url": "https://github.com/rce-incorporated/Fiu",
+      "status": "candidate",
+      "notes": "Luau bytecode interpreter, not full obfuscator"
+    },
+    {
+      "name": "unprom",
+      "role": "deobfuscator",
+      "url": "https://github.com/yennylol/unprom",
+      "status": "bundled research tool; two smoke probes",
+      "notes": "MIT license included; semantic recovery not verified"
+    },
+    {
+      "name": "Prometheus-DeobfuscatorV2",
+      "role": "deobfuscator",
+      "url": "https://github.com/0x251/Prometheus-DeobfuscatorV2",
+      "status": "candidate",
+      "notes": "Coverage unverified"
+    },
+    {
+      "name": "Hercules deobfuscator",
+      "role": "deobfuscator",
+      "url": "https://github.com/approu/hercules-deobfuscator",
+      "status": "search result only",
+      "notes": "Source fetch unavailable; not validated"
+    },
+    {
+      "name": "LuaDec",
+      "role": "decompiler",
+      "url": "https://github.com/viruscamp/luadec",
+      "status": "candidate",
+      "notes": "Lua bytecode decompiler; not universal VM recovery"
+    },
+    {
+      "name": "unluac",
+      "role": "decompiler",
+      "url": "https://sourceforge.net/projects/unluac/",
+      "status": "candidate",
+      "notes": "Official SourceForge distribution; not universal VM recovery"
+    },
+    {
+      "name": "LuraphDeobfuscator",
+      "role": "deobfuscator",
+      "url": "https://github.com/PhoenixZeng/LuraphDeobfuscator",
+      "status": "candidate",
+      "notes": "Historical tool; no evidence of latest-version coverage"
+    },
+    {
+      "name": "Deobfuscator-Luraph-V15",
+      "role": "deobfuscator",
+      "url": "https://github.com/caomod2077/Deobfuscator-Luraph-V15",
+      "status": "candidate",
+      "notes": "Author claims v15; not independently tested"
+    },
+    {
+      "name": "Lua-Deobfuscator",
+      "role": "deobfuscator",
+      "url": "https://github.com/nguyenthaitrung/Lua-Deobfuscator",
+      "status": "candidate",
+      "notes": "Claims MoonSec V2/IronBrew/AztupBrew; not tested"
+    },
+    {
+      "name": "Moonveil-1.4.5-Deobfuscator",
+      "role": "deobfuscator",
+      "url": "https://github.com/UnstableGrape/Moonveil-1.4.5-Deobfuscator",
+      "status": "candidate",
+      "notes": "Version-specific claim; not tested"
+    },
+    {
+      "name": "De4Lua",
+      "role": "deobfuscator",
+      "url": "https://github.com/ShufflePerson/De4Lua",
+      "status": "candidate",
+      "notes": "Upstream explicitly says not production-ready and no virtualization support"
+    },
+    {
+      "name": "luast-deobfuscator",
+      "role": "deobfuscator",
+      "url": "https://github.com/HamieXD/luast-deobfuscator",
+      "status": "candidate",
+      "notes": "Author claims static recovery; not tested"
+    },
+    {
+      "name": "LuaObfuscator",
+      "role": "hosted service",
+      "url": "https://luaobfuscator.com/",
+      "status": "reference only",
+      "notes": "No code imported and no user source uploaded"
+    },
+    {
+      "name": "Luraph v15",
+      "role": "commercial reference",
+      "url": "https://lura.ph/dashboard/documents/v15",
+      "status": "reference only",
+      "notes": "Official v15 document indexed; latest patch version unconfirmed"
+    },
+    {
+      "name": "Luraph API",
+      "role": "commercial reference",
+      "url": "https://lura.ph/dashboard/documents/apidoc",
+      "status": "reference only",
+      "notes": "No credentials or benchmark outputs available"
+    },
+    {
+      "name": "Obfuscator-Samples",
+      "role": "corpus",
+      "url": "https://github.com/Xyraniz/Obfuscator-Samples",
+      "status": "candidate",
+      "notes": "Untrusted samples; not executed or bundled"
+    },
+    {
+      "name": "obfuscator-samples",
+      "role": "corpus",
+      "url": "https://github.com/terrorlua/obfuscator-samples",
+      "status": "candidate",
+      "notes": "Untrusted samples; not executed or bundled"
+    }
+  ]
+}

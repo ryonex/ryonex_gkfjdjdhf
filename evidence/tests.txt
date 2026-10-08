@@ -1,0 +1,21 @@
+test_atomic_collision (test_boundaries.Boundaries.test_atomic_collision) ... ok
+test_build_does_not_execute_source (test_boundaries.Boundaries.test_build_does_not_execute_source) ... ok
+test_dangling_symlink (test_boundaries.Boundaries.test_dangling_symlink) ... ok
+test_empty_and_oversize (test_boundaries.Boundaries.test_empty_and_oversize) ... ok
+test_environment_introspection_rejected (test_boundaries.Boundaries.test_environment_introspection_rejected) ... ok
+test_existing_output_unchanged (test_boundaries.Boundaries.test_existing_output_unchanged) ... ok
+test_introspection_words_in_strings_are_allowed (test_boundaries.Boundaries.test_introspection_words_in_strings_are_allowed) ... ok
+test_invalid_options (test_boundaries.Boundaries.test_invalid_options) ... ok
+test_invalid_utf8 (test_boundaries.Boundaries.test_invalid_utf8) ... ok
+test_timeout_leaves_no_output (test_boundaries.Boundaries.test_timeout_leaves_no_output) ... ok
+test_vendor_tamper_fails_closed (test_boundaries.Boundaries.test_vendor_tamper_fails_closed) ... ok
+test_worker_failure_leaves_no_output (test_boundaries.Boundaries.test_worker_failure_leaves_no_output) ... ok
+test_do_not_overwrite (test_engine.EngineTest.test_do_not_overwrite) ... ok
+test_invalid_input_no_artifact (test_engine.EngineTest.test_invalid_input_no_artifact) ... ok
+test_reproducibility_and_diversity (test_engine.EngineTest.test_reproducibility_and_diversity) ... ok
+test_semantics (test_engine.EngineTest.test_semantics) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 4.791s
+
+OK

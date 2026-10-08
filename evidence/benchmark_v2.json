@@ -1,0 +1,171 @@
+{
+  "note": "Local machine, Lupa Lua 5.1; not Roblox. No security claims.",
+  "workloads": {
+    "loop": {
+      "original": {
+        "value": 39987,
+        "median_seconds": 5.529999907594174e-05,
+        "bytes": 49,
+        "lua_heap_kb": 32.4
+      },
+      "profiles": {
+        "balanced": {
+          "median_seconds": 0.0008481000004394446,
+          "runtime_ratio": 15.336347461322298,
+          "bytes": 12133,
+          "size_ratio": 247.6122448979592,
+          "build_seconds": 0.224,
+          "lua_heap_kb": 183.9,
+          "heap_ratio": 5.6759259259259265,
+          "value_matches": true
+        },
+        "hardened": {
+          "median_seconds": 0.005030399999668589,
+          "runtime_ratio": 90.96564346701886,
+          "bytes": 30109,
+          "size_ratio": 614.469387755102,
+          "build_seconds": 0.271,
+          "lua_heap_kb": 182.8,
+          "heap_ratio": 5.6419753086419755,
+          "value_matches": true
+        }
+      }
+    },
+    "string_ops": {
+      "original": {
+        "value": [
+          48,
+          97
+        ],
+        "median_seconds": 1.340000017080456e-05,
+        "bytes": 98,
+        "lua_heap_kb": 34.6
+      },
+      "profiles": {
+        "balanced": {
+          "median_seconds": 0.0006030999993527075,
+          "runtime_ratio": 45.00746206456924,
+          "bytes": 12699,
+          "size_ratio": 129.58163265306123,
+          "build_seconds": 0.234,
+          "lua_heap_kb": 140.1,
+          "heap_ratio": 4.0491329479768785,
+          "value_matches": true
+        },
+        "hardened": {
+          "median_seconds": 0.0010540000002947636,
+          "runtime_ratio": 78.65671543730133,
+          "bytes": 32314,
+          "size_ratio": 329.734693877551,
+          "build_seconds": 0.27,
+          "lua_heap_kb": 253.3,
+          "heap_ratio": 7.320809248554913,
+          "value_matches": true
+        }
+      }
+    },
+    "table_ops": {
+      "original": {
+        "value": 1001000,
+        "median_seconds": 4.42000000475673e-05,
+        "bytes": 88,
+        "lua_heap_kb": 78.7
+      },
+      "profiles": {
+        "balanced": {
+          "median_seconds": 0.0004403000002639601,
+          "runtime_ratio": 9.961538456789969,
+          "bytes": 12557,
+          "size_ratio": 142.6931818181818,
+          "build_seconds": 0.218,
+          "lua_heap_kb": 165.8,
+          "heap_ratio": 2.1067344345616266,
+          "value_matches": true
+        },
+        "hardened": {
+          "median_seconds": 0.0027948999995714985,
+          "runtime_ratio": 63.233031596463206,
+          "bytes": 32265,
+          "size_ratio": 366.64772727272725,
+          "build_seconds": 0.257,
+          "lua_heap_kb": 208.8,
+          "heap_ratio": 2.653113087674714,
+          "value_matches": true
+        }
+      }
+    },
+    "closures": {
+      "original": {
+        "value": 40200,
+        "median_seconds": 4.4299998990027234e-05,
+        "bytes": 124,
+        "lua_heap_kb": 51.8
+      },
+      "profiles": {
+        "balanced": {
+          "median_seconds": 0.0008541000006516697,
+          "runtime_ratio": 19.279910160809344,
+          "bytes": 12791,
+          "size_ratio": 103.15322580645162,
+          "build_seconds": 0.21,
+          "lua_heap_kb": 403.0,
+          "heap_ratio": 7.779922779922781,
+          "value_matches": true
+        },
+        "hardened": {
+          "median_seconds": 0.00912869999956456,
+          "runtime_ratio": 206.0654674421009,
+          "bytes": 35598,
+          "size_ratio": 287.0806451612903,
+          "build_seconds": 0.274,
+          "lua_heap_kb": 728.8,
+          "heap_ratio": 14.069498069498069,
+          "value_matches": true
+        }
+      }
+    },
+    "calls": {
+      "original": {
+        "value": 500500,
+        "median_seconds": 2.7800000680144876e-05,
+        "bytes": 84,
+        "lua_heap_kb": 33.4
+      },
+      "profiles": {
+        "balanced": {
+          "median_seconds": 0.0014070000015635742,
+          "runtime_ratio": 50.61150960936745,
+          "bytes": 12486,
+          "size_ratio": 148.64285714285714,
+          "build_seconds": 0.203,
+          "lua_heap_kb": 162.1,
+          "heap_ratio": 4.8532934131736525,
+          "value_matches": true
+        },
+        "hardened": {
+          "median_seconds": 0.026719800000137184,
+          "runtime_ratio": 961.1438613820184,
+          "bytes": 33434,
+          "size_ratio": 398.0238095238095,
+          "build_seconds": 0.242,
+          "lua_heap_kb": 300.4,
+          "heap_ratio": 8.994011976047904,
+          "value_matches": true
+        }
+      }
+    }
+  },
+  "double_virtualization": {
+    "workload": "loop",
+    "single_vm": {
+      "runtime_ratio": 9.965517247558992,
+      "bytes": 1299
+    },
+    "double_vm": {
+      "runtime_ratio": 122.18472930615053,
+      "bytes": 12946
+    },
+    "double_over_single": 12.260751376059192,
+    "claim": "NONE: cost measured; added resistance NOT evaluated"
+  }
+}

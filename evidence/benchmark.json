@@ -1,0 +1,29 @@
+{
+  "source": {
+    "return_value": 39987,
+    "median_seconds": 4.3704000063371495e-05,
+    "runs": 9,
+    "bytes": 49
+  },
+  "environment": "Lupa Lua 5.1, this container; not Roblox or user PC",
+  "profiles": {
+    "balanced": {
+      "return_value": 39987,
+      "median_seconds": 0.000869028000124672,
+      "runs": 9,
+      "bytes": 11827,
+      "runtime_ratio": 19.884404147550967,
+      "size_ratio": 241.3673469387755,
+      "build_seconds": 0.115
+    },
+    "hardened": {
+      "return_value": 39987,
+      "median_seconds": 0.006327975999965929,
+      "runs": 9,
+      "bytes": 26168,
+      "runtime_ratio": 144.79168933713763,
+      "size_ratio": 534.0408163265306,
+      "build_seconds": 0.165
+    }
+  }
+}

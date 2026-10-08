@@ -1,0 +1,48 @@
+[
+  {
+    "profile": "balanced",
+    "build": {
+      "engine": "ryonex-prometheus-adapter",
+      "version": "0.1.0",
+      "upstream_commit": "a4efc5f381c50ae2a111bdbb9272fa3203685be3",
+      "profile": "balanced",
+      "seed": 42,
+      "target": "Lua51",
+      "output_bytes": 11400,
+      "output_sha256": "ac08f7917c5038d591cdebb5a9d65f00afb978a5f3687e24f189f7bffae29c05",
+      "seconds": 0.115,
+      "syntax_checked": true,
+      "semantic_equivalence_checked": false,
+      "luraph_comparison": "NOT_TESTED"
+    },
+    "unprom": {
+      "returncode": 0,
+      "output_created": true,
+      "semantic_equivalence": "NOT_CHECKED",
+      "note": "Output creation does not establish successful deobfuscation; failure does not establish resistance."
+    }
+  },
+  {
+    "profile": "hardened",
+    "build": {
+      "engine": "ryonex-prometheus-adapter",
+      "version": "0.1.0",
+      "upstream_commit": "a4efc5f381c50ae2a111bdbb9272fa3203685be3",
+      "profile": "hardened",
+      "seed": 42,
+      "target": "Lua51",
+      "output_bytes": 22065,
+      "output_sha256": "e46478035c3397b3f2940973b02549300d48d96d6891444864d99e0274d66058",
+      "seconds": 0.115,
+      "syntax_checked": true,
+      "semantic_equivalence_checked": false,
+      "luraph_comparison": "NOT_TESTED"
+    },
+    "unprom": {
+      "returncode": 0,
+      "output_created": true,
+      "semantic_equivalence": "NOT_CHECKED",
+      "note": "Output creation does not establish successful deobfuscation; failure does not establish resistance."
+    }
+  }
+]

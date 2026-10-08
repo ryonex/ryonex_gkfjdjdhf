@@ -1,0 +1,266 @@
+--- upstream/src/prometheus/compiler/compile_core.lua
++++ modified/src/prometheus/compiler/compile_core.lua
+@@ -25,6 +25,14 @@
+     function Compiler:compileExpression(expression, funcDepth, numReturns)
+         local handler = expressionHandlers[expression.kind];
+         if handler then
++            -- RyoNex fix: parentheses force exactly one value, with nil padding.
++            if expression.isParenthesizedExpression and numReturns ~= self.RETURN_ALL and numReturns > 1 then
++                local regs = handler(self, expression, funcDepth, 1);
++                for i = 2, numReturns do
++                    regs[i] = self:compileExpression(Ast.NilExpression(), funcDepth, 1)[1];
++                end
++                return regs;
++            end
+             return handler(self, expression, funcDepth, numReturns);
+         end
+         logger:error(string.format("%s is not an compliable expression!", expression.kind));
+--- upstream/src/prometheus/compiler/compile_top.lua
++++ modified/src/prometheus/compiler/compile_top.lua
+@@ -123,7 +123,7 @@
+                 scope:addReferenceToHigherScope(self.containerFuncScope, self.argsVar);
+                 scope:addReferenceToHigherScope(self.scope, self.selectVar);
+                 scope:addReferenceToHigherScope(self.scope, self.unpackVar);
+-                self:addStatement(self:setRegister(scope, self.varargReg, Ast.TableConstructorExpression({
++                self:addStatement(self:setRegister(scope, self.varargReg, self:pack(scope, {
+                     Ast.TableEntry(Ast.FunctionCallExpression(Ast.VariableExpression(self.scope, self.selectVar), {
+                         Ast.NumberExpression(i);
+                         Ast.FunctionCallExpression(Ast.VariableExpression(self.scope, self.unpackVar), {
+--- upstream/src/prometheus/compiler/compiler.lua
++++ modified/src/prometheus/compiler/compiler.lua
+@@ -20,6 +20,33 @@
+ local compileCoreModule = require("prometheus.compiler.compile_core");
+ 
+ local Compiler = {};
++
++-- RyoNex: explicit arity for VM transport tables, including trailing nils.
++function Compiler:pack(parent, entries)
++    local scope = Scope:new(parent);
++    local gs, selectId = scope:resolveGlobal("select");
++    scope:addReferenceToHigherScope(gs, selectId);
++    local args = {};
++    for _, entry in ipairs(entries) do args[#args + 1] = entry.value; end
++    return Ast.FunctionCallExpression(Ast.FunctionLiteralExpression({Ast.VarargExpression()},
++        Ast.Block({Ast.ReturnStatement({Ast.TableConstructorExpression({
++            Ast.KeyedTableEntry(Ast.StringExpression("n"), Ast.FunctionCallExpression(
++                Ast.VariableExpression(gs, selectId), {Ast.StringExpression("#"), Ast.VarargExpression()})),
++            Ast.TableEntry(Ast.VarargExpression())
++        })})}, scope)), args);
++end
++
++function Compiler:arityUnpack(parent, original)
++    local scope = Scope:new(parent);
++    local t, i, j = scope:addVariable(), scope:addVariable(), scope:addVariable();
++    local function v(id) return Ast.VariableExpression(scope, id); end
++    return Ast.FunctionLiteralExpression({v(t),v(i),v(j)}, Ast.Block({
++        Ast.ReturnStatement({Ast.FunctionCallExpression(original, {
++            v(t), Ast.OrExpression(v(i),Ast.NumberExpression(1)),
++            Ast.OrExpression(v(j),Ast.OrExpression(Ast.IndexExpression(v(t),Ast.StringExpression("n")),Ast.LenExpression(v(t))))
++        })})
++    },scope));
++end
+ 
+ function Compiler:new()
+     local compiler = {
+@@ -214,7 +241,7 @@
+                             Ast.ReturnStatement{
+                                 Ast.FunctionCallExpression(Ast.VariableExpression(self.scope, self.containerFuncVar), {
+                                     Ast.VariableExpression(createClosureScope, createClosurePosArg),
+-                                    Ast.TableConstructorExpression({Ast.TableEntry(Ast.VarargExpression())}),
++                                    self:pack(createClosureSubScope, {Ast.TableEntry(Ast.VarargExpression())}),
+                                     Ast.VariableExpression(createClosureScope, createClosureUpvalsArg),
+                                     Ast.VariableExpression(createClosureScope, createClosureProxyObject)
+                                 })
+@@ -288,12 +315,12 @@
+ 
+     local astItems = {
+         Ast.OrExpression(Ast.AndExpression(Ast.VariableExpression(newGlobalScope, getfenvVar), Ast.FunctionCallExpression(Ast.VariableExpression(newGlobalScope, getfenvVar), {})), Ast.VariableExpression(newGlobalScope, envVar));
+-        Ast.OrExpression(Ast.VariableExpression(newGlobalScope, unpackVar), Ast.IndexExpression(Ast.VariableExpression(newGlobalScope, tableVar), Ast.StringExpression("unpack")));
++        self:arityUnpack(psc, Ast.OrExpression(Ast.VariableExpression(newGlobalScope, unpackVar), Ast.IndexExpression(Ast.VariableExpression(newGlobalScope, tableVar), Ast.StringExpression("unpack"))));
+         Ast.VariableExpression(newGlobalScope, newproxyVar);
+         Ast.VariableExpression(newGlobalScope, setmetatableVar);
+         Ast.VariableExpression(newGlobalScope, getmetatableVar);
+         Ast.VariableExpression(newGlobalScope, selectVar);
+-        Ast.TableConstructorExpression({
++        self:pack(psc, {
+             Ast.TableEntry(Ast.VarargExpression());
+         })
+     }
+@@ -361,7 +388,7 @@
+                         Ast.ReturnStatement{
+                             Ast.FunctionCallExpression(Ast.VariableExpression(self.scope, self.containerFuncVar), {
+                                 Ast.VariableExpression(createClosureScope, createClosurePosArg),
+-                                Ast.TableConstructorExpression(argsTb2),
++                                self:pack(createClosureSubScope, argsTb2),
+                                 Ast.VariableExpression(createClosureScope, createClosureUpvalsArg),
+                                 Ast.VariableExpression(createClosureScope, createClosureProxyObject)
+                             })
+--- upstream/src/prometheus/compiler/expressions/function_call.lua
++++ modified/src/prometheus/compiler/expressions/function_call.lua
+@@ -24,7 +24,7 @@
+     local regs = {};
+     local args = {};
+     for i, expr in ipairs(expression.args) do
+-        if i == #expression.args and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
++        if i == #expression.args and not expr.isParenthesizedExpression and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
+             local reg = self:compileExpression(expr, funcDepth, self.RETURN_ALL)[1];
+             table.insert(args, Ast.FunctionCallExpression(
+                 self:unpack(scope),
+@@ -38,12 +38,12 @@
+     end
+ 
+     if returnAll then
+-        self:addStatement(self:setRegister(scope, retRegs[1], Ast.TableConstructorExpression{Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, baseReg), args))}), {retRegs[1]}, {baseReg, unpack(regs)}, true);
++        self:addStatement(self:setRegister(scope, retRegs[1], self:pack(scope, {Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, baseReg), args))})), {retRegs[1]}, {baseReg, unpack(regs)}, true);
+     else
+         if numReturns > 1 then
+             local tmpReg = self:allocRegister(false);
+ 
+-            self:addStatement(self:setRegister(scope, tmpReg, Ast.TableConstructorExpression{Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, baseReg), args))}), {tmpReg}, {baseReg, unpack(regs)}, true);
++            self:addStatement(self:setRegister(scope, tmpReg, self:pack(scope, {Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, baseReg), args))})), {tmpReg}, {baseReg, unpack(regs)}, true);
+ 
+ 
+             for i, reg in ipairs(retRegs) do
+--- upstream/src/prometheus/compiler/expressions/pass_self_function_call.lua
++++ modified/src/prometheus/compiler/expressions/pass_self_function_call.lua
+@@ -24,7 +24,7 @@
+     local regs = { baseReg };
+ 
+     for i, expr in ipairs(expression.args) do
+-        if i == #expression.args and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
++        if i == #expression.args and not expr.isParenthesizedExpression and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
+             local reg = self:compileExpression(expr, funcDepth, self.RETURN_ALL)[1];
+             table.insert(args, Ast.FunctionCallExpression(
+                 self:unpack(scope),
+@@ -44,9 +44,9 @@
+         self:addStatement(self:setRegister(scope, tmpReg, Ast.IndexExpression(self:register(scope, baseReg), self:register(scope, tmpReg))), {tmpReg}, {baseReg, tmpReg}, false);
+ 
+         if returnAll then
+-            self:addStatement(self:setRegister(scope, retRegs[1], Ast.TableConstructorExpression{Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, tmpReg), args))}), {retRegs[1]}, {tmpReg, unpack(regs)}, true);
++            self:addStatement(self:setRegister(scope, retRegs[1], self:pack(scope, {Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, tmpReg), args))})), {retRegs[1]}, {tmpReg, unpack(regs)}, true);
+         else
+-            self:addStatement(self:setRegister(scope, tmpReg, Ast.TableConstructorExpression{Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, tmpReg), args))}), {tmpReg}, {tmpReg, unpack(regs)}, true);
++            self:addStatement(self:setRegister(scope, tmpReg, self:pack(scope, {Ast.TableEntry(Ast.FunctionCallExpression(self:register(scope, tmpReg), args))})), {tmpReg}, {tmpReg, unpack(regs)}, true);
+ 
+             for i, reg in ipairs(retRegs) do
+                 self:addStatement(self:setRegister(scope, reg, Ast.IndexExpression(self:register(scope, tmpReg), Ast.NumberExpression(i))), {reg}, {tmpReg}, false);
+--- upstream/src/prometheus/compiler/expressions/table_constructor.lua
++++ modified/src/prometheus/compiler/expressions/table_constructor.lua
+@@ -18,7 +18,7 @@
+             for i, entry in ipairs(expression.entries) do
+                 if entry.kind == AstKind.TableEntry then
+                     local value = entry.value;
+-                    if i == #expression.entries and (value.kind == AstKind.FunctionCallExpression or value.kind == AstKind.PassSelfFunctionCallExpression or value.kind == AstKind.VarargExpression) then
++                    if i == #expression.entries and not value.isParenthesizedExpression and (value.kind == AstKind.FunctionCallExpression or value.kind == AstKind.PassSelfFunctionCallExpression or value.kind == AstKind.VarargExpression) then
+                         local reg = self:compileExpression(entry.value, funcDepth, self.RETURN_ALL)[1];
+                         table.insert(entries, Ast.TableEntry(Ast.FunctionCallExpression(
+                             self:unpack(scope),
+--- upstream/src/prometheus/compiler/statements/function_call.lua
++++ modified/src/prometheus/compiler/statements/function_call.lua
+@@ -15,7 +15,7 @@
+     local args = {};
+ 
+     for i, expr in ipairs(statement.args) do
+-        if i == #statement.args and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
++        if i == #statement.args and not expr.isParenthesizedExpression and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
+             local reg = self:compileExpression(expr, funcDepth, self.RETURN_ALL)[1];
+             table.insert(args, Ast.FunctionCallExpression(
+                 self:unpack(scope),
+--- upstream/src/prometheus/compiler/statements/pass_self_function_call.lua
++++ modified/src/prometheus/compiler/statements/pass_self_function_call.lua
+@@ -15,7 +15,7 @@
+     local regs = { baseReg };
+ 
+     for i, expr in ipairs(statement.args) do
+-        if i == #statement.args and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
++        if i == #statement.args and not expr.isParenthesizedExpression and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
+             local reg = self:compileExpression(expr, funcDepth, self.RETURN_ALL)[1];
+             table.insert(args, Ast.FunctionCallExpression(
+                 self:unpack(scope),
+--- upstream/src/prometheus/compiler/statements/return.lua
++++ modified/src/prometheus/compiler/statements/return.lua
+@@ -13,7 +13,7 @@
+     local regs = {};
+ 
+     for i, expr in ipairs(statement.args) do
+-        if i == #statement.args and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
++        if i == #statement.args and not expr.isParenthesizedExpression and (expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression or expr.kind == AstKind.VarargExpression) then
+             local reg = self:compileExpression(expr, funcDepth, self.RETURN_ALL)[1];
+             table.insert(entries, Ast.TableEntry(Ast.FunctionCallExpression(
+                 self:unpack(scope),
+@@ -30,7 +30,7 @@
+         self:freeRegister(reg, false);
+     end
+ 
+-    self:addStatement(self:setReturn(scope, Ast.TableConstructorExpression(entries)), {self.RETURN_REGISTER}, regs, false);
++    self:addStatement(self:setReturn(scope, self:pack(scope, entries)), {self.RETURN_REGISTER}, regs, false);
+     self:addStatement(self:setPos(self.activeBlock.scope, nil), {self.POS_REGISTER}, {}, false);
+     self.activeBlock.advanceToNextBlock = false;
+ end;
+
+-- Phase 2 verified core repair (Windows-native session) --
+--- upstream/src/prometheus/unparser.lua
++++ modified/src/prometheus/unparser.lua
+@@ NumberExpression emission
+ if(str == "-inf") then
+ return "-2e1024"
+ end
++-- RyoNex fix: Lua 5.1 tostring rounds to 14 significant digits. If the
++-- round trip loses value, emit a 17-digit form that re-parses exactly.
++if(type(expression.value) == "number" and tonumber(str) ~= expression.value) then
++str = string.format("%.17g", expression.value);
++end
+ if(str:sub(1, 2) == "0.") then
+--- upstream/src/prometheus/steps/NumbersToExpressions.lua
++++ modified/src/prometheus/steps/NumbersToExpressions.lua
+@@ CreateNumberExpression mutation branches
++-- RyoNex fix: every mutated representation must re-parse to the exact
++-- original value; otherwise fall back to the plain literal (guards
++-- 32-bit-long %X truncation and %.15g precision loss).
++local function verified(str)
++if str and tonumber(str) == val then
++return Ast.NumberExpression(str)
++end
++return Ast.NumberExpression(val)
++end
++if val ~= val or val == math.huge or val == -math.huge then
++return Ast.NumberExpression(val)
++end
+ hex: guard val < 2^53, pcall(string.format), return verified(result)
+ binary: return verified("0b" .. binary)
+-scientific: return Ast.NumberExpression(string.format("%.15ge%d", mantissa, exp))
++scientific: return verified(string.format("%.17ge%d", mantissa, exp))
+--- upstream/src/prometheus/tokenizer.lua
++++ modified/src/prometheus/tokenizer.lua
+@@ Tokenizer:number
++-- RyoNex fix: tonumber(str, base) uses strtoul (32-bit long on MSVC) and
++-- silently wraps values >= 2^32. Exact double parsing up to 2^53, then
++-- defer to the runtime parser.
++local function parseIntBase(str, base, prefix) ... end
+-local value = tonumber(source, 2);
++local value = parseIntBase(source, 2, "0b");
+-local value = tonumber(source, 16);
++local value = parseIntBase(source, 16, "0x");
+--- upstream/src/prometheus/compiler/register.lua
++++ modified/src/prometheus/compiler/register.lua
+@@ Compiler:allocRegister
+-local id = 0;
+-if self.usedRegisters < MAX_REGS * constants.MAX_REGS_MUL then
+-repeat id = math.random(1, MAX_REGS - 1); until not self.registers[id];
+-else
+-repeat id = id + 1; until not self.registers[id];
+-end
++-- RyoNex fix: bounded random probing (<= MAX_REGS attempts) with a
++-- deterministic first-fit fallback (also serves the spill region).
++local id = nil;
++for _ = 1, MAX_REGS do
++local candidate = math.random(1, MAX_REGS - 1);
++if not self.registers[candidate] then id = candidate; break; end
++end
++if not id then
++id = 0;
++repeat id = id + 1; until not self.registers[id];
++end
+--- upstream/src/prometheus/compiler/constants.lua
++++ modified/src/prometheus/compiler/constants.lua
+-MAX_REGS_MUL = 0,

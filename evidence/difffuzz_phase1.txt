@@ -1,0 +1,37 @@
+probe coroutine_error_propagation  OK
+probe coroutine_nested_yield       OK
+probe error_levels_and_payloads    OK
+probe gc_closure_retention         OK
+probe gc_finalizer_flags           OK
+probe gc_upvalue_writeback         OK
+probe global_env_ops               OK
+probe multi_adjust_contexts        OK
+probe tail_call_deep               MISMATCH
+  FAIL[balanced] seed=1
+    expected: (n:20000)
+ok=true err=nil
+    actual:   
+ok=false err=s:stack overflow
+  FAIL[hardened] seed=1
+    expected: (n:20000)
+ok=true err=nil
+    actual:   
+ok=false err=s:stack overflow
+probe tail_call_mutual_deep        OK
+probe upvalue_shared_between_closures OK
+probe vararg_trailing_nil          OK
+probe xpcall_handler               OK
+fuzz fuzz_100003  OK
+fuzz fuzz_100004  OK
+fuzz fuzz_100005  OK
+fuzz fuzz_100006  OK
+fuzz fuzz_100007  OK
+fuzz fuzz_100008  OK
+fuzz fuzz_100009  OK
+fuzz fuzz_100010  OK
+fuzz fuzz_100011  OK
+fuzz fuzz_100012  OK
+fuzz fuzz_100013  OK
+fuzz fuzz_100014  OK
+
+25 programs+probes, 2 mismatches, 4.0s

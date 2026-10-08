@@ -100,9 +100,28 @@ def transform(source, profile, seed):
         c.Seed = seed
         c.LuaVersion = 'Lua51'
         -- Debug/anti-tamper assumptions are not portable across host runtimes.
+        -- RyoNex 0.3.0: hardened uses ONE Vmify plus SplitStrings instead of
+        -- the Strong preset's double virtualization. Double nesting measured
+        -- 10.4x cost over single VM with no evaluated resistance benefit and
+        -- carried confirmed defects (register-slot retention starving user
+        -- __gc finalizers; decoder-state corruption under GC pressure).
+        -- Evidence: docs/RYONEX_030_PROGRESS.md.
         local steps = {}
-        for _, step in ipairs(c.Steps) do
-            if step.Name ~= 'AntiTamper' then steps[#steps+1] = step end
+        if preset == 'Strong' then
+            local byName = {}
+            for _, step in ipairs(c.Steps) do byName[step.Name] = step end
+            steps = {
+                byName['EncryptStrings'],
+                byName['Vmify'],
+                byName['ConstantArray'],
+                { Name = 'SplitStrings', Settings = {} },
+                byName['NumbersToExpressions'],
+                byName['WrapInFunction'],
+            }
+        else
+            for _, step in ipairs(c.Steps) do
+                if step.Name ~= 'AntiTamper' then steps[#steps+1] = step end
+            end
         end
         c.Steps = steps
         return P.Pipeline:fromConfig(c):apply(source, 'input.lua')

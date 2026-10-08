@@ -25,23 +25,57 @@ re-measured this session.
 ## Completed milestones
 
 - [x] Phase 0 baseline re-verified on this container (2026-10-08).
+- [x] Phase 1 milestone 1 — differential fuzzing harness + upvalue
+  correctness fix (2026-10-08):
+  - `tests/difffuzz.py`: typed random-program differential fuzzer + 13 fixed
+    probes covering multi-return, parens, varargs, closures, upvalues,
+    coroutines, tail calls, metamethods, error propagation, globals, GC.
+  - CONFIRMED + FIXED (P0): refcount+`__gc` upvalue model was unsound under
+    Lua 5.1 unspecified finalizer order — user `__gc` finalizers read freed
+    upvalues (crash `table index is nil` / lost writes). Pure-Lua 5.1
+    counterexample reproduced the ordering; fix = GC-managed box tables
+    (`compiler/upvalue.lua`, `compiler/register.lua`).
+  - CONFIRMED + FIXED (profile architecture): hardened double-VM (VM-in-VM)
+    pinned freed register slots until program exit (starved user finalizers,
+    broke weak tables) and corrupted decoder state under GC pressure at
+    specific seeds. Per policy (no redundant nesting without proven benefit)
+    hardened now runs ONE Vmify + SplitStrings; the differential suite passes.
+  - NON-SEMANTIC boundaries pinned by tests: error position strings, error
+    identifier names, `__gc` execution order (multiset compared).
+  - KNOWN DEFECT (open): proper tail calls — VM call path does not trampoline;
+    recursion > ~15-20k nested frames raises `stack overflow` (measured:
+    15000 OK, 20000 overflow, both profiles). Regression test expectedFailure.
 
 ## Test evidence
 
-- `python -m unittest discover -s tests`: 23/23 OK (39.4 s) — real run this session.
+- 2026-10-08, `python -m unittest discover -s tests`: 27/27 OK (36.2 s),
+  1 expected failure = documented tail-call defect. Includes 4 new Phase 1
+  regression tests (`tests/test_phase1_regressions.py`).
+- 2026-10-08, `python tests/difffuzz.py --programs 12 --seed 1`:
+  25 programs+probes x 2 profiles, 2 mismatches = tail-call probe only.
+- 2026-10-08, finalizer/upvalue isolation matrix (6 variants x 2 profiles):
+  all match modulo `__gc` order.
 
 ## Performance results
 
-See `evidence/benchmark_030_baseline.json` (regenerated this session).
+- Baseline (pre-fix, 0.2.0 code): `evidence/benchmark_030_baseline.json` —
+  balanced 11.8-56.2x, hardened 58-874x runtime vs native, double-VM 10.4x
+  over single VM.
+- Post-fix hardened is single-VM; its overhead is expected to approach the
+  balanced range plus SplitStrings cost; re-measured in Phase 6.
 
 ## Known defects
 
-- Upvalue refcount/`__gc` timing hypothesis (0.2.0 handoff problem 1) — open,
-  probed by Phase 1 differential fuzzing.
+- Tail calls grow the VM stack (limit ~15-20k frames); see above.
+- Finalizer execution order differs from the original run (Lua 5.1 leaves it
+  unspecified; documented non-semantic boundary).
+- Error position/identifier strings differ after transformation (documented
+  non-semantic boundary).
 
 ## Remaining tasks
 
-- Phase 1: differential semantic fuzzing; fix confirmed defects with regressions.
+- Phase 1 (remaining): metamethod-heavy corpus expansion; coroutines under
+  stress; tail-call trampoline design review (architectural).
 - Phase 2: RYONEX IR (typed instructions, CFG, validation, serialization).
 - Phase 3: RYONEX VM v1 (independent backend; keep Prometheus backend).
 - Phase 4: Luau backend compatibility layer + matrix.
@@ -52,6 +86,7 @@ See `evidence/benchmark_030_baseline.json` (regenerated this session).
 
 ## Next milestone
 
-Phase 1 — differential semantic testing (multi-return, parens, varargs,
-closures, upvalues, coroutines, tail calls, metamethods, error propagation,
-environment-sensitive ops, GC).
+Phase 1 continuation — broader metamethod/coroutine differential corpus and
+tail-call trampoline review (architectural decision point), then Phase 2
+RYONEX IR.
+

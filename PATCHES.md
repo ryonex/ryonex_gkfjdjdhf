@@ -1,3 +1,53 @@
+# RyoNex 0.3.0 — core engine evolution
+
+## Upvalue model: refcount + `__gc` replaced by GC-managed boxes (P0 fix)
+
+- `prometheus/compiler/upvalue.lua`, `prometheus/compiler/register.lua`:
+  shared variables now live in one-field "box" tables (`box[1]`); registers
+  and closure entry lists reference the box directly. Lifetime is plain Lua
+  reference semantics — no ids, no reference counts, no `__gc`-driven frees.
+- Motivation (confirmed defect, reproducible in pure Lua 5.1): the old model
+  freed upvalue ids from the entries-proxy `__gc`, but Lua 5.1 runs finalizers
+  in unspecified order, so a userdata finalizer could read its own closure
+  upvalues AFTER the proxy had already decremented/freed them — silent value
+  loss (`table index is nil`) or lost writes. Minimal counterexample and
+  evidence: docs/RYONEX_030_PROGRESS.md, tests/test_phase1_regressions.py.
+- The entries-proxy keeps a no-op `__gc` so it stays in the GC's preserved
+  (finalizable) set while user finalizers run; its metatable (`__index` =
+  entry list) then keeps the captured boxes reachable regardless of
+  finalization order.
+
+## Hardened profile: single virtualization (profile architecture fix)
+
+- `engine.py`: the hardened build drops the Strong preset's double Vmify
+  (VM-in-VM) and gains `SplitStrings` instead. Double nesting measured 10.4x
+  runtime over single VM (`evidence/benchmark_030_baseline.json`) with no
+  evaluated resistance benefit, and carried two confirmed defects that only
+  manifest under the outer VM layer: (1) freed register slots pin their last
+  value until program exit, starving user `__gc` finalizers and breaking weak
+  tables; (2) decoder-state corruption under GC pressure produced wrong
+  string bytes at specific seeds. Both classes are eliminated by the single
+  VM profile; the differential suite passes on balanced and hardened.
+  Per project policy, VM nesting returns only with proven benefit (Phase 5
+  MAXIMUM evaluation).
+
+## Semantic boundaries (documented, non-semantic by Lua reference)
+
+- Error POSITION strings (`chunk:line:`) embedded in `error(msg)`/`assert`
+  messages cannot survive source transformation; differential testing
+  normalizes them (tests/difffuzz.py).
+- Error messages embedding identifier names (`attempt to call local 'x'`,
+  `bad argument #1 to 'f'`) change under renaming; normalized likewise.
+- `__gc` finalizer EXECUTION ORDER is unspecified in Lua 5.1; only the
+  multiset of finalizer effects is compared (tests/test_phase1_regressions.py).
+
+## Known defects (tracked, regression-tested)
+
+- Proper tail calls: the VM call path does not trampoline tail calls; tail
+  recursion beyond the host Lua stack limit (~15-20k nested frames) raises
+  `stack overflow` where Lua 5.1 runs unbounded. Regression test marked
+  expectedFailure: tests/test_phase1_regressions.py.
+
 # RyoNex 0.2.0 — local fork changes
 
 Based on Prometheus by Elias Oelschner, https://github.com/prometheus-lua/Prometheus

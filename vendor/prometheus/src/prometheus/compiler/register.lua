@@ -251,17 +251,18 @@ return function(Compiler)
         return Ast.AssignmentVariable(self.containerFuncScope, self.returnVar);
     end
 
+    -- RyoNex 0.3.0: upvalue registers hold GC-managed box tables; the value
+    -- lives at box[1]. (Was: upvaluesTable[id] with manual reference counts,
+    -- which is unsound under Lua 5.1 finalization order; see upvalue.lua.)
     function Compiler:setUpvalueMember(scope, idExpr, valExpr, compoundConstructor)
-        scope:addReferenceToHigherScope(self.scope, self.upvaluesTable);
         if compoundConstructor then
-            return compoundConstructor(Ast.AssignmentIndexing(Ast.VariableExpression(self.scope, self.upvaluesTable), idExpr), valExpr);
+            return compoundConstructor(Ast.AssignmentIndexing(idExpr, Ast.NumberExpression(1)), valExpr);
         end
-        return Ast.AssignmentStatement({Ast.AssignmentIndexing(Ast.VariableExpression(self.scope, self.upvaluesTable), idExpr)}, {valExpr});
+        return Ast.AssignmentStatement({Ast.AssignmentIndexing(idExpr, Ast.NumberExpression(1))}, {valExpr});
     end
 
     function Compiler:getUpvalueMember(scope, idExpr)
-        scope:addReferenceToHigherScope(self.scope, self.upvaluesTable);
-        return Ast.IndexExpression(Ast.VariableExpression(self.scope, self.upvaluesTable), idExpr);
+        return Ast.IndexExpression(idExpr, Ast.NumberExpression(1));
     end
 end
 

@@ -42,11 +42,18 @@ re-measured this session.
     hardened now runs ONE Vmify + SplitStrings; the differential suite passes.
   - NON-SEMANTIC boundaries pinned by tests: error position strings, error
     identifier names, `__gc` execution order (multiset compared).
-  - KNOWN DEFECT (open): proper tail calls — VM call path does not trampoline;
-    recursion > ~15-20k nested frames raises `stack overflow` (measured:
-    15000 OK, 20000 overflow, both profiles). Regression test expectedFailure.
+  - DEFECT (open at milestone 1, FIXED in milestone 2): proper tail calls.
 
 ## Test evidence
+
+- 2026-10-08, final state: `python -m unittest discover -s tests` = 28/28 OK
+  (~37 s), 0 expected failures. `tests/test_phase1_regressions.py` holds 10
+  minimized regressions in 4 classes (finalizer upvalues, non-semantic
+  boundaries, expression lists, tail calls).
+- 2026-10-08, `tests/difffuzz.py` seeds 4 and 7: 43 + 53 programs+probes x
+  2 profiles, 0 mismatches (evidence/difffuzz_seed4.txt, difffuzz_seed7.txt).
+- 2026-10-08, milestone 1 evidence: evidence/tests_phase1.txt,
+  evidence/difffuzz_phase1.txt (pre-milestone-2 state).
 
 - 2026-10-08, `python -m unittest discover -s tests`: 27/27 OK (36.2 s),
   1 expected failure = documented tail-call defect. Includes 4 new Phase 1

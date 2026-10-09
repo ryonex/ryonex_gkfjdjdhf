@@ -95,7 +95,7 @@ _POS_TOKEN = re.compile(r'\[string "<python>"\]:\d+: ')
 # Identifier names and local/global qualifiers in error messages are
 # renaming artifacts (NON-SEMANTIC, like positions). Canonicalize them.
 _ERR_IDENT = re.compile(
-    r"(attempt to (?:call|index)) \w+ '[^']*'")
+    r"(attempt to (?:call|index|perform arithmetic on|concatenate|compare|get length of)) \w+ '[^']*'")
 _ERR_ARG = re.compile(r"bad argument #(\d+) to '[^']*'")
 
 
@@ -111,7 +111,8 @@ def normalize(trace):
     # length prefixes in the canon predate position stripping
     trace = _ERR_IDENT.sub(r"\1 <var> '<name>'", trace)
     trace = _ERR_ARG.sub(r"bad argument #\1 to '<fn>'", trace)
-    return re.sub(r's:\d+:', 's:', trace)
+    trace = re.sub(r's:\d+:', 's:', trace)
+    return trace.replace('n:-0', 'n:0')
 
 
 def run_chunk(source):
@@ -388,15 +389,19 @@ class Gen:
             return '(%s)' % (self._call(d - 1, 'any') or 'nil')  # parens adjust to 1
         if c < 0.72:
             vs = [n for n, k in self.env if k == 'tbl']
-            base = r.choice(vs) if vs else '{}'
+            base = r.choice(vs) if vs else '({})'
             return '%s[%s]' % (base, self.gen_expr(r.choice(['num', 'str', 'any']), d - 1))
         if c < 0.78 and self.in_vararg:
             return r.choice(['...', '(...)'])
         if c < 0.88:
             return '(%s and %s or %s)' % (self.gen_bool(d - 1), self.gen_any(d - 1),
                                           self.gen_any(d - 1))
-        return '(function() %s return %s end)()' % (
-            self.gen_block(d - 1, 1), self.gen_expr('any', d - 1))
+        saved = self.in_vararg
+        self.in_vararg = False
+        body = self.gen_block(d - 1, 1)
+        ret = self.gen_expr('any', d - 1)
+        self.in_vararg = saved
+        return '(function() %s return %s end)()' % (body, ret)
 
     def gen_multi(self, d):
         """A trailing multi-value expression (call, vararg or select)."""
@@ -426,8 +431,7 @@ class Gen:
         if vararg:
             params.append('...')
         saved = self.in_vararg
-        if vararg:
-            self.in_vararg = True
+        self.in_vararg = vararg
         body = self.gen_block(max(0, d - 1), r.randint(1, 3), in_fn=True)
         self.in_vararg = saved
         style = r.random()
@@ -496,8 +500,10 @@ class Gen:
             return 'local %s = 0; while %s < 5 do %s = %s + 1 %s end' % (
                 i, i, i, i, self.gen_block(d - 1, 1, True, in_fn))
         if c < 0.79 and d > 0:
-            return 'repeat %s until %s' % (self.gen_block(d - 1, 1, True, in_fn),
-                                           self.gen_bool(d - 1))
+            i = self.fresh('i')
+            return ('local %s = 0; repeat %s = %s + 1 %s until %s or %s > 20') % (
+                i, i, i, self.gen_block(d - 1, 1, True, in_fn),
+                self.gen_bool(d - 1), i)
         if c < 0.88 and d > 0:
             return self.gen_function_def(d - 1)
         if c < 0.93:  # error-propagation probe inside pcall

@@ -31,6 +31,13 @@
   Per project policy, VM nesting returns only with proven benefit (Phase 5
   MAXIMUM evaluation).
 
+## Known limitations (0.3.0)
+
+- Signed zero: `0` vs `-0` formatting through number-representation mutation
+  is not bit-stable (`tostring`/`string.format` can observe the difference on
+  some builds; `==` treats them equal). Tracked for the Phase 6 pass; the
+  differential fuzzer canonicalizes `n:-0` to `n:0` and records the boundary.
+
 ## Semantic boundaries (documented, non-semantic by Lua reference)
 
 - Error POSITION strings (`chunk:line:`) embedded in `error(msg)`/`assert`
@@ -41,12 +48,17 @@
 - `__gc` finalizer EXECUTION ORDER is unspecified in Lua 5.1; only the
   multiset of finalizer effects is compared (tests/test_phase1_regressions.py).
 
-## Known defects (tracked, regression-tested)
+## Proper tail calls (P0 fix)
 
-- Proper tail calls: the VM call path does not trampoline tail calls; tail
-  recursion beyond the host Lua stack limit (~15-20k nested frames) raises
-  `stack overflow` where Lua 5.1 runs unbounded. Regression test marked
-  expectedFailure: tests/test_phase1_regressions.py.
+- `prometheus/compiler/statements/return.lua`, `prometheus/compiler/compiler.lua`:
+  `return f(...)` in tail position now emits a frame-swap trampoline. When f
+  is a VM closure, its frame descriptor {pos, upvalues, proxy} (kept in a
+  weak-keyed registry populated at closure creation) replaces the current
+  dispatch frame and the interpreter loop continues in f's entry block — the
+  host stack does not grow. Plain Lua functions fall back to an ordinary
+  call + return. Verified: 1,000,000-deep tail recursion and 30k-deep mutual
+  tail recursion run correctly on balanced and hardened
+  (tests/test_phase1_regressions.py).
 
 # RyoNex 0.2.0 — local fork changes
 

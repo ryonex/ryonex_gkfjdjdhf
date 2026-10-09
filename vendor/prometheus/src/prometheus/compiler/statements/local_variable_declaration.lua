@@ -17,10 +17,8 @@ return function(self, statement, funcDepth)
                 table.insert(exprregs, reg);
             end
         else
-            if statement.ids[i] or expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression then
-                local reg = self:compileExpression(expr, funcDepth, 1)[1];
-                table.insert(exprregs, reg);
-            end
+            local reg = self:compileExpression(expr, funcDepth, 1)[1];
+            table.insert(exprregs, reg);
         end
     end
 

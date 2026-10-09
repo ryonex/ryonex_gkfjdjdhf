@@ -172,6 +172,10 @@ function Compiler:compile(ast)
     self.upvaluesProxyFunctionVar = self.scope:addVariable();
     self.upvaluesGcFunctionVar = self.scope:addVariable();
     self.freeUpvalueFunc = self.scope:addVariable();
+    -- RyoNex 0.3.0: tail-call trampoline support. Maps VM closures to
+    -- their {pos, upvalues, proxy} frame descriptors so tail calls can
+    -- replace the current dispatch frame instead of nesting a call.
+    self.closureMetaVar = self.scope:addVariable();
 
     self.createClosureVars = {};
     self.createVarargClosureVar = self.scope:addVariable();
@@ -203,6 +207,7 @@ function Compiler:compile(ast)
     end
 
     createClosureSubScope:addReferenceToHigherScope(self.scope, self.containerFuncVar);
+    createClosureScope:addReferenceToHigherScope(self.scope, self.closureMetaVar);
     createClosureSubScope:addReferenceToHigherScope(createClosureScope, createClosurePosArg)
     createClosureSubScope:addReferenceToHigherScope(createClosureScope, createClosureUpvalsArg, 1)
     createClosureScope:addReferenceToHigherScope(self.scope, self.upvaluesProxyFunctionVar)
@@ -249,6 +254,17 @@ function Compiler:compile(ast)
                         }, createClosureSubScope)
                         );
                     });
+                Ast.AssignmentStatement({
+                    Ast.AssignmentIndexing(
+                        Ast.VariableExpression(self.scope, self.closureMetaVar),
+                        Ast.VariableExpression(createClosureScope, createClosureFuncVar)),
+                }, {
+                    Ast.TableConstructorExpression({
+                        Ast.TableEntry(Ast.VariableExpression(createClosureScope, createClosurePosArg)),
+                        Ast.TableEntry(Ast.VariableExpression(createClosureScope, createClosureUpvalsArg)),
+                        Ast.TableEntry(Ast.VariableExpression(createClosureScope, createClosureProxyObject)),
+                    })
+                }),
                     Ast.ReturnStatement{Ast.VariableExpression(createClosureScope, createClosureFuncVar)};
                 }, createClosureScope)
             );
@@ -273,6 +289,14 @@ function Compiler:compile(ast)
         }, {
             var = Ast.AssignmentVariable(self.scope, self.freeUpvalueFunc),
             val = self:createFreeUpvalueFunc(),
+        }, {
+            var = Ast.AssignmentVariable(self.scope, self.closureMetaVar),
+            val = Ast.FunctionCallExpression(Ast.VariableExpression(self.scope, self.setmetatableVar), {
+                Ast.TableConstructorExpression({}),
+                Ast.TableConstructorExpression({
+                    Ast.KeyedTableEntry(Ast.StringExpression("__mode"), Ast.StringExpression("k")),
+                }),
+            }),
         },
     }
 
@@ -286,6 +310,7 @@ function Compiler:compile(ast)
         Ast.VariableExpression(self.scope, self.upvaluesProxyFunctionVar),
         Ast.VariableExpression(self.scope, self.upvaluesGcFunctionVar),
         Ast.VariableExpression(self.scope, self.freeUpvalueFunc),
+        Ast.VariableExpression(self.scope, self.closureMetaVar),
     };
     for i, entry in pairs(self.createClosureVars) do
         table.insert(functionNodeAssignments, entry);
@@ -362,6 +387,8 @@ function Compiler:getCreateClosureVar(argCount)
         createClosureSubScope:addReferenceToHigherScope(createClosureScope, createClosurePosArg)
         createClosureSubScope:addReferenceToHigherScope(createClosureScope, createClosureUpvalsArg, 1)
         createClosureScope:addReferenceToHigherScope(self.scope, self.upvaluesProxyFunctionVar)
+        createClosureScope:addReferenceToHigherScope(self.scope, self.closureMetaVar)
+        createClosureScope:addReferenceToHigherScope(self.scope, self.closureMetaVar)
         createClosureSubScope:addReferenceToHigherScope(createClosureScope, createClosureProxyObject);
 
         local  argsTb, argsTb2 = {}, {};
@@ -396,6 +423,17 @@ function Compiler:getCreateClosureVar(argCount)
                     }, createClosureSubScope)
                     );
                 });
+                Ast.AssignmentStatement({
+                    Ast.AssignmentIndexing(
+                        Ast.VariableExpression(self.scope, self.closureMetaVar),
+                        Ast.VariableExpression(createClosureScope, createClosureFuncVar)),
+                }, {
+                    Ast.TableConstructorExpression({
+                        Ast.TableEntry(Ast.VariableExpression(createClosureScope, createClosurePosArg)),
+                        Ast.TableEntry(Ast.VariableExpression(createClosureScope, createClosureUpvalsArg)),
+                        Ast.TableEntry(Ast.VariableExpression(createClosureScope, createClosureProxyObject)),
+                    })
+                }),
                 Ast.ReturnStatement{Ast.VariableExpression(createClosureScope, createClosureFuncVar)}
             }, createClosureScope)
         );

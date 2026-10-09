@@ -64,9 +64,27 @@ re-measured this session.
 - Post-fix hardened is single-VM; its overhead is expected to approach the
   balanced range plus SplitStrings cost; re-measured in Phase 6.
 
+## Phase 1 milestone 2 (same day): tail calls + expression lists
+
+- CONFIRMED + FIXED (P0): proper tail calls. The VM call path did not
+  trampoline `return f(...)`; recursion beyond ~15-20k nested frames raised
+  `stack overflow`. Fixed with a frame-swap trampoline
+  (`compiler/statements/return.lua` + a weak-keyed closure-descriptor
+  registry in `compiler/compiler.lua`); verified 1,000,000-deep tail
+  recursion and 30k-deep mutual tail recursion on both profiles.
+- CONFIRMED + FIXED (P0): expressions beyond the target list in local
+  declarations and assignments were silently dropped unless they were calls
+  (`local x = 1, error("boom")` compiled as `local x = 1`). All RHS
+  expressions now compile unconditionally
+  (`statements/local_variable_declaration.lua`, `statements/assignment.lua`).
+- Test evidence: 28/28 unit tests OK (no expected failures);
+  `tests/difffuzz.py` seeds 4 and 7: 43 + 53 programs+probes x 2 profiles,
+  0 mismatches. Generator bugs fixed along the way (bounded repeat, vararg
+  scoping, `({})[k]` constructor).
+
 ## Known defects
 
-- Tail calls grow the VM stack (limit ~15-20k frames); see above.
+- Signed-zero formatting (`0` vs `-0`) is not bit-stable through number-representation mutation (see PATCHES.md).
 - Finalizer execution order differs from the original run (Lua 5.1 leaves it
   unspecified; documented non-semantic boundary).
 - Error position/identifier strings differ after transformation (documented
@@ -75,7 +93,7 @@ re-measured this session.
 ## Remaining tasks
 
 - Phase 1 (remaining): metamethod-heavy corpus expansion; coroutines under
-  stress; tail-call trampoline design review (architectural).
+  stress; signed-zero stabilization.
 - Phase 2: RYONEX IR (typed instructions, CFG, validation, serialization).
 - Phase 3: RYONEX VM v1 (independent backend; keep Prometheus backend).
 - Phase 4: Luau backend compatibility layer + matrix.
@@ -86,7 +104,7 @@ re-measured this session.
 
 ## Next milestone
 
-Phase 1 continuation — broader metamethod/coroutine differential corpus and
-tail-call trampoline review (architectural decision point), then Phase 2
-RYONEX IR.
+Phase 2 — RYONEX IR (typed instruction representation, CFG, basic blocks,
+validation, deterministic serialization, pass interface). The Prometheus
+backend remains the production backend during Phase 2-3 development.
 

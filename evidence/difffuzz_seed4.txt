@@ -1,0 +1,55 @@
+probe coroutine_error_propagation  OK
+probe coroutine_nested_yield       OK
+probe error_levels_and_payloads    OK
+probe gc_closure_retention         OK
+probe gc_finalizer_flags           OK
+probe gc_upvalue_writeback         OK
+probe global_env_ops               OK
+probe multi_adjust_contexts        OK
+probe tail_call_deep               OK
+probe tail_call_mutual_deep        OK
+probe upvalue_shared_between_closures OK
+probe vararg_trailing_nil          OK
+probe xpcall_handler               OK
+fuzz fuzz_400012  OK
+gen fuzz_400013  INVALID-GENERATOR: HARNESS_ERROR: error loading code: [string "<python>"]:47: ')' expected near '['
+fuzz fuzz_400014  OK
+fuzz fuzz_400015  OK
+fuzz fuzz_400016  OK
+fuzz fuzz_400017  OK
+fuzz fuzz_400018  OK
+fuzz fuzz_400019  OK
+fuzz fuzz_400020  OK
+fuzz fuzz_400021  OK
+fuzz fuzz_400022  OK
+fuzz fuzz_400023  OK
+fuzz fuzz_400024  OK
+fuzz fuzz_400025  OK
+fuzz fuzz_400026  OK
+fuzz fuzz_400027  MISMATCH
+  FAIL[balanced] fseed=400027
+    expected: (n:-0 | s:x y)
+ok=false err=s:attempt to call <var> '<name>' (a nil value)
+    actual:   (n:0 | s:x y)
+ok=false err=s:attempt to call <var> '<name>' (a nil value)
+  FAIL[hardened] fseed=400027
+    expected: (n:-0 | s:x y)
+ok=false err=s:attempt to call <var> '<name>' (a nil value)
+    actual:   (n:0 | s:x y)
+ok=false err=s:attempt to call <var> '<name>' (a nil value)
+fuzz fuzz_400028  OK
+fuzz fuzz_400029  OK
+fuzz fuzz_400030  OK
+fuzz fuzz_400031  OK
+fuzz fuzz_400032  OK
+fuzz fuzz_400033  OK
+fuzz fuzz_400034  OK
+fuzz fuzz_400035  OK
+fuzz fuzz_400036  OK
+fuzz fuzz_400037  OK
+fuzz fuzz_400038  OK
+fuzz fuzz_400039  OK
+fuzz fuzz_400040  OK
+fuzz fuzz_400041  OK
+
+43 programs+probes, 3 mismatches, 6.7s

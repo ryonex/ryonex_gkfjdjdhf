@@ -33,15 +33,13 @@ return function(self, statement, funcDepth)
                 table.insert(exprregs, reg);
             end
         else
-            if statement.lhs[i] or expr.kind == AstKind.FunctionCallExpression or expr.kind == AstKind.PassSelfFunctionCallExpression then
-                local reg = self:compileExpression(expr, funcDepth, 1)[1];
-                if(self:isVarRegister(reg)) then
-                    local ro = reg;
-                    reg = self:allocRegister(false);
-                    self:addStatement(self:copyRegisters(scope, {reg}, {ro}), {reg}, {ro}, false);
-                end
-                table.insert(exprregs, reg);
+            local reg = self:compileExpression(expr, funcDepth, 1)[1];
+            if(self:isVarRegister(reg)) then
+                local ro = reg;
+                reg = self:allocRegister(false);
+                self:addStatement(self:copyRegisters(scope, {reg}, {ro}), {reg}, {ro}, false);
             end
+            table.insert(exprregs, reg);
         end
     end
 

@@ -1,0 +1,33 @@
+test_matrix (test_arity_matrix.ArityMatrixTest.test_matrix) ... ok
+test_atomic_collision (test_boundaries.Boundaries.test_atomic_collision) ... ok
+test_build_does_not_execute_source (test_boundaries.Boundaries.test_build_does_not_execute_source) ... ok
+test_dangling_symlink (test_boundaries.Boundaries.test_dangling_symlink) ... ok
+test_empty_and_oversize (test_boundaries.Boundaries.test_empty_and_oversize) ... ok
+test_environment_introspection_rejected (test_boundaries.Boundaries.test_environment_introspection_rejected) ... ok
+test_existing_output_unchanged (test_boundaries.Boundaries.test_existing_output_unchanged) ... ok
+test_introspection_words_in_strings_are_allowed (test_boundaries.Boundaries.test_introspection_words_in_strings_are_allowed) ... ok
+test_invalid_options (test_boundaries.Boundaries.test_invalid_options) ... ok
+test_invalid_utf8 (test_boundaries.Boundaries.test_invalid_utf8) ... ok
+test_timeout_leaves_no_output (test_boundaries.Boundaries.test_timeout_leaves_no_output) ... ok
+test_vendor_tamper_fails_closed (test_boundaries.Boundaries.test_vendor_tamper_fails_closed) ... ok
+test_worker_failure_leaves_no_output (test_boundaries.Boundaries.test_worker_failure_leaves_no_output) ... ok
+test_do_not_overwrite (test_engine.EngineTest.test_do_not_overwrite) ... ok
+test_invalid_input_no_artifact (test_engine.EngineTest.test_invalid_input_no_artifact) ... ok
+test_reproducibility_and_diversity (test_engine.EngineTest.test_reproducibility_and_diversity) ... ok
+test_semantics (test_engine.EngineTest.test_semantics) ... ok
+test_accepted (test_guard.GuardTest.test_accepted) ... ok
+test_dynamic_alias_undetectable_is_documented (test_guard.GuardTest.test_dynamic_alias_undetectable_is_documented) ... ok
+test_rejected (test_guard.GuardTest.test_rejected) ... ok
+test_literal_roundtrip (test_numeric_precision.NumericPrecisionTest.test_literal_roundtrip) ... ok
+test_extra_expressions_evaluated (test_phase1_regressions.ExpressionListRegression.test_extra_expressions_evaluated) ... ok
+test_finalizer_upvalue_integrity (test_phase1_regressions.FinalizerUpvalueRegression.test_finalizer_upvalue_integrity) ... ok
+test_error_position_normalized (test_phase1_regressions.NonSemanticBoundaries.test_error_position_normalized) ... ok
+test_finalizer_order_unspecified (test_phase1_regressions.NonSemanticBoundaries.test_finalizer_order_unspecified) ... ok
+test_deep_tail_call_is_proper (test_phase1_regressions.TailCallRegression.test_deep_tail_call_is_proper) ... ok
+test_pressure_terminates_and_preserves_semantics (test_register_pressure.RegisterPressureTest.test_pressure_terminates_and_preserves_semantics) ... ok
+test_lifetime (test_upvalue_lifetime.UpvalueLifetimeTest.test_lifetime) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 36.935s
+
+OK
